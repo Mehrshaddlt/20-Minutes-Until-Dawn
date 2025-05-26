@@ -1,6 +1,9 @@
 # 20 minutes till dawn
 
-A [libGDX](https://libgdx.com/) project generated with [gdx-liftoff](https://github.com/libgdx/gdx-liftoff).
+## Advanced Programming SUT - 2025
+
+The project is fully developed in Java using LibGDX. You
+
 
 This project was generated with a template including simple application launchers and an `ApplicationAdapter` extension that draws libGDX logo.
 
