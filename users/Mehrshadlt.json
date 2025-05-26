@@ -1,0 +1,15 @@
+{
+"username": "Mehrshadlt",
+"password": "M13841384@m",
+"securityQuestion": "What was your first pet's name?",
+"securityAnswer": "test",
+"isGuest": false,
+"avatarPath": "Avatars/T_Abby_Portrait.png",
+"selectedHero": "Shana",
+"selectedWeapon": "Shotgun",
+"totalGamesPlayed": 3,
+"gamesWon": 1,
+"totalKills": 77,
+"highScore": 284,
+"totalScore": 366
+}
