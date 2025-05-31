@@ -10,9 +10,7 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
-import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
-import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
@@ -21,6 +19,7 @@ import untildawn.com.Model.AssetManager;
 import untildawn.com.Model.SoundManager;
 import untildawn.com.Model.User;
 import untildawn.com.Main;
+import java.io.File;
 
 public class ProfileMenuView implements Screen {
     private Main game;
@@ -46,25 +45,19 @@ public class ProfileMenuView implements Screen {
         this.controller = new ProfileMenuController(game, currentUser);
         this.currentAvatarName = currentUser.getAvatarName();
 
-        // Create a viewport that fills the entire screen
         stage = new Stage(new FitViewport(1920, 1080));
         skin = new Skin(Gdx.files.internal("pixthulhu/skin/pixthulhu-ui.json"));
 
         createUI();
+        // Removed setupAvatarDragAndDrop();
     }
 
     private void createUI() {
-        // Use ScreenViewport for proper scaling
         stage.setViewport(new ScreenViewport());
-
-        // Main container
         Table mainTable = new Table();
         mainTable.setFillParent(true);
 
-        // --- Left panel: Avatar and select ---
         Table leftPanel = new Table();
-
-        // Avatar with frame
         Table avatarContainer = new Table();
         avatarContainer.setBackground(new TextureRegionDrawable(new TextureRegion(
             new Texture(Gdx.files.internal("T_UIPanelSelected.png")))));
@@ -74,7 +67,6 @@ public class ProfileMenuView implements Screen {
         currentAvatar.setScaling(Scaling.fit);
         avatarContainer.add(currentAvatar).size(120, 120).pad(10);
 
-        // Avatar select
         Label selectLabel = new Label("SELECT AVATAR:", skin);
         selectLabel.setFontScale(1.1f);
         selectLabel.setColor(1.0f, 0.45f, 0.45f, 1f);
@@ -97,9 +89,10 @@ public class ProfileMenuView implements Screen {
 
         leftPanel.add(avatarContainer).size(140, 140).pad(10).center().row();
         leftPanel.add(selectLabel).padTop(15).center().row();
-        leftPanel.add(avatarSelect).width(250).height(65).padTop(10).center();
+        leftPanel.add(avatarSelect).width(250).height(65).padTop(10).center().row();
+        avatarSelect.setColor(1.0f, 0.45f, 0.45f, 1f);
+        addAvatarFileSelection(leftPanel);
 
-        // --- Right panel: Form ---
         Table formPanel = new Table();
         formPanel.center();
 
@@ -159,7 +152,6 @@ public class ProfileMenuView implements Screen {
         formPanel.add(deleteButton).width(600).height(100).padBottom(10).row();
         formPanel.add(backButton).width(400).height(100).row();
 
-        // --- Layout: left and right panels ---
         mainTable.add(leftPanel).width(250).fillY().padLeft(50);
         mainTable.add(formPanel).expand().fill().padRight(50);
 
@@ -224,14 +216,63 @@ public class ProfileMenuView implements Screen {
         dialog.show(stage);
     }
 
+    private void addAvatarFileSelection(Table leftPanel) {
+        TextButton chooseAvatarButton = new TextButton("Choose Avatar", skin);
+        chooseAvatarButton.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                openAvatarFileChooser();
+            }
+        });
+        leftPanel.add(chooseAvatarButton).width(350).height(90).padTop(10).center().row();
+        chooseAvatarButton.setColor(1.0f, 0.45f, 0.45f, 1f);
+    }
+
+    private void openAvatarFileChooser() {
+        Gdx.app.postRunnable(() -> {
+            if (Gdx.graphics.isFullscreen()) {
+                Gdx.graphics.setWindowedMode(1280, 720);
+            }
+            javax.swing.SwingUtilities.invokeLater(() -> {
+                javax.swing.JFileChooser chooser = new javax.swing.JFileChooser();
+                chooser.setFileSelectionMode(javax.swing.JFileChooser.FILES_ONLY);
+                int result = chooser.showOpenDialog(null);
+                if (result == javax.swing.JFileChooser.APPROVE_OPTION) {
+                    File file = chooser.getSelectedFile();
+                    setCustomAvatarFromFile(file);
+                }
+                Gdx.app.postRunnable(() -> {
+                    Gdx.graphics.setFullscreenMode(Gdx.graphics.getDisplayMode());
+                });
+            });
+        });
+    }
+
+    private void setCustomAvatarFromFile(File file) {
+        if (file == null) return;
+        Gdx.app.postRunnable(() -> {
+            try {
+                Texture newTexture = new Texture(Gdx.files.absolute(file.getAbsolutePath()));
+                currentAvatar.setDrawable(new TextureRegionDrawable(new TextureRegion(newTexture)));
+                controller.setCustomAvatar(file.getAbsolutePath());
+            } catch (Exception e) {
+                // Optionally show error
+            }
+        });
+    }
+
     @Override
     public void render(float delta) {
         Gdx.gl.glClearColor(0.15f, 0.15f, 0.2f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        // Render background
-        AssetManager.getInstance().renderBackground(delta);
+        // Check for dropped file (LWJGL3 drag-and-drop)
+        String droppedFile = game.consumeDroppedAvatarFile();
+        if (droppedFile != null) {
+            setCustomAvatarFromFile(new File(droppedFile));
+        }
 
+        AssetManager.getInstance().renderBackground(delta);
         stage.act(delta);
         stage.draw();
     }

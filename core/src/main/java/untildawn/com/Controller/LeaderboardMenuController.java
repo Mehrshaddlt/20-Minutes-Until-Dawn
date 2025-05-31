@@ -18,7 +18,7 @@ public class LeaderboardMenuController {
     private LeaderboardMenuView view;
     private User currentUser;
     private ArrayList<User> allUsers;
-    private int sortMode = 0; // 0 = by score, 1 = by kills, 2 = by username
+    private int sortMode = 0;
     private Main game;
     private Stage stage;
 
@@ -27,17 +27,13 @@ public class LeaderboardMenuController {
         this.currentUser = currentUser;
         this.allUsers = loadAllUsers();
         sortUsers();
-        // The view will be created in the LeaderboardMenuView constructor
     }
-
     public void setView(LeaderboardMenuView view) {
         this.view = view;
     }
-
     public void setStage(Stage stage) {
         this.stage = stage;
     }
-
     private ArrayList<User> loadAllUsers() {
         ArrayList<User> users = new ArrayList<>();
         try {
@@ -50,25 +46,23 @@ public class LeaderboardMenuController {
                     }
                 }
             }
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             System.err.println("Error loading users for leaderboard: " + e.getMessage());
             e.printStackTrace();
         }
         return users;
     }
-
     public void sortUsers() {
         if (sortMode == 0) {
-            // Sort by score (highest first)
             Collections.sort(allUsers, (u1, u2) -> Integer.compare(u2.getTotalScore(), u1.getTotalScore()));
-        } else if (sortMode == 1) {
-            // Sort by kills (highest first)
+        }
+        else if (sortMode == 1) {
             Collections.sort(allUsers, (u1, u2) -> Integer.compare(u2.getTotalKills(), u1.getTotalKills()));
-        } else {
-            // Sort by username (A to Z)
+        }
+        else {
             Collections.sort(allUsers, (u1, u2) -> u1.getUsername().compareToIgnoreCase(u2.getUsername()));
         }
-
         if (view != null) {
             view.updateLeaderboard();
         }
@@ -78,24 +72,19 @@ public class LeaderboardMenuController {
         this.sortMode = mode;
         sortUsers();
     }
-
     public List<User> getTopUsers(int count) {
         int size = Math.min(count, allUsers.size());
         return allUsers.subList(0, size);
     }
-
     public User getCurrentUser() {
         return currentUser;
     }
-
     public int getSortMode() {
         return sortMode;
     }
-
     public void goToMainMenu() {
         game.setScreen(new MainMenuView(game, currentUser));
     }
-
     public String getSortModeString() {
         switch(sortMode) {
             case 0: return "Highest Score";
@@ -104,11 +93,9 @@ public class LeaderboardMenuController {
             default: return "Unknown";
         }
     }
-
     public ArrayList<User> getAllUsers() {
         return allUsers;
     }
-
     public Main getGame() {
         return game;
     }

@@ -29,6 +29,8 @@ public class SettingsMenuView implements Screen {
     private Label waitingForInput;
     private String currentRebinding;
     private Table dPadTable;
+    private Table autoaimTable;
+    private TextButton autoaimButton;
 
     public SettingsMenuView(Main game, User currentUser) {
         this.game = game;
@@ -75,7 +77,7 @@ public class SettingsMenuView implements Screen {
         Table mainTable = new Table();
         mainTable.setFillParent(true);
         mainTable.center();
-        mainTable.pad(30); // Add padding around the entire table
+        mainTable.pad(30);
 
         // Title
         Label titleLabel = new Label("SETTINGS", skin);
@@ -84,7 +86,7 @@ public class SettingsMenuView implements Screen {
 
         // Music Selection
         Table musicTable = new Table();
-        Label musicLabel = new Label("Music Theme:", skin);
+        Label musicLabel = new Label("Music Theme:  ", skin);
         musicSelect = new SelectBox<>(skin);
         musicSelect.setItems("Menu 1", "Menu 2");
         musicSelect.setSelected(controller.getSelectedMusic());
@@ -95,16 +97,19 @@ public class SettingsMenuView implements Screen {
                 SoundManager.getInstance().play("select", 0.5f);
             }
         });
-        musicTable.add(musicLabel).width(150).left().padRight(10);
+        musicTable.add(musicLabel).width(150).left().padRight(40);
         musicTable.add(musicSelect).width(200).left();
-
+        musicLabel.setColor(0.9f, 0.3f, 0.3f, 1f);
+        musicTable.setColor(0.9f, 0.3f, 0.3f, 1f);
         // Volume Slider
         Table volumeTable = new Table();
         Label volumeLabel = new Label("Music Volume:", skin);
         volumeSlider = new Slider(0f, 1f, 0.05f, false, skin);
         volumeSlider.setValue(controller.getMusicVolume());
         Label volumeValueLabel = new Label(String.format("%.0f%%", controller.getMusicVolume() * 100), skin);
-
+        volumeLabel.setColor(0.9f, 0.3f, 0.3f, 1f);
+        volumeTable.setColor(0.9f, 0.3f, 0.3f, 1f);
+        volumeValueLabel.setColor(0.9f, 0.3f, 0.3f, 1f);
         volumeSlider.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
@@ -114,7 +119,7 @@ public class SettingsMenuView implements Screen {
             }
         });
 
-        volumeTable.add(volumeLabel).width(150).left().padRight(10);
+        volumeTable.add(volumeLabel).width(150).left().padRight(40);
         volumeTable.add(volumeSlider).width(150).left().padRight(10);
         volumeTable.add(volumeValueLabel).width(50).left();
 
@@ -127,49 +132,82 @@ public class SettingsMenuView implements Screen {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 controller.setSfxEnabled(sfxCheckbox.isChecked());
-                // Play a sound if enabled to demonstrate the setting
                 if (sfxCheckbox.isChecked()) {
                     SoundManager.getInstance().play("select", 0.5f);
                 }
             }
         });
-
-        sfxTable.add(sfxLabel).width(150).left().padRight(30);
+        sfxTable.add(sfxLabel).width(150).left().padRight(40);
         sfxTable.add(sfxCheckbox).left();
-
-        // Key Bindings Section - D-pad layout
+        sfxTable.setColor(0.9f, 0.3f, 0.3f, 1f);
+        sfxLabel.setColor(0.9f, 0.3f, 0.3f, 1f);
+        // Auto Reload Checkbox (under SFX)
+        Table autoReloadTable = new Table();
+        Label autoReloadLabel = new Label("Auto Reload:", skin);
+        CheckBox autoReloadCheckbox = new CheckBox("", skin);
+        autoReloadCheckbox.setChecked(controller.isAutoReloadEnabled());
+        autoReloadCheckbox.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                controller.setAutoReloadEnabled(autoReloadCheckbox.isChecked());
+                SoundManager.getInstance().play("select", 0.5f);
+            }
+        });
+        autoReloadTable.add(autoReloadLabel).width(150).left().padRight(30);
+        autoReloadTable.add(autoReloadCheckbox).left();
+        autoReloadLabel.setColor(0.9f, 0.3f, 0.3f, 1f);
+        autoReloadTable.setColor(0.9f, 0.3f, 0.3f, 1f);
+        // Key Bindings Label
         Label keysLabel = new Label("KEY BINDINGS", skin);
         keysLabel.setFontScale(1.5f);
         keysLabel.setColor(0.9f, 0.6f, 0.3f, 1f);
 
-        // Create D-pad layout table
+        // D-Pad Table
         dPadTable = new Table();
         dPadTable.setName("dPadTable");
 
-        // Create key binding buttons
         TextButton upButton = createKeyBindButton("UP", Input.Keys.toString(controller.getKeyBinding("UP")));
         TextButton leftButton = createKeyBindButton("LEFT", Input.Keys.toString(controller.getKeyBinding("LEFT")));
         TextButton downButton = createKeyBindButton("DOWN", Input.Keys.toString(controller.getKeyBinding("DOWN")));
         TextButton rightButton = createKeyBindButton("RIGHT", Input.Keys.toString(controller.getKeyBinding("RIGHT")));
 
-        // Arrange in a D-pad layout
-        dPadTable.add().width(120).height(100); // Empty cell
+        dPadTable.add().width(120).height(100);
         dPadTable.add(upButton).width(120).height(100).pad(5);
-        dPadTable.add().width(120).height(100).row(); // Empty cell
-
+        dPadTable.add().width(120).height(100).row();
+        upButton.setColor(0.9f, 0.3f, 0.3f, 1f);
         dPadTable.add(leftButton).width(120).height(100).pad(5);
-        dPadTable.add().width(120).height(100); // Empty center cell
+        dPadTable.add().width(120).height(100);
         dPadTable.add(rightButton).width(120).height(100).pad(5).row();
-
-        dPadTable.add().width(120).height(100); // Empty cell
+        leftButton.setColor(0.9f, 0.3f, 0.3f, 1f);
+        rightButton.setColor(0.9f, 0.3f, 0.3f, 1f);
+        dPadTable.add().width(120).height(100);
         dPadTable.add(downButton).width(120).height(100).pad(5);
-        dPadTable.add().width(120).height(100); // Empty cell
+        dPadTable.add().width(120).height(100);
+        downButton.setColor(0.9f, 0.3f, 0.3f, 1f);
+        // Auto Aim
+        autoaimButton = createKeyBindButton("AUTOAIM", Input.Keys.toString(controller.getKeyBinding("AUTOAIM")));
+        autoaimButton.setColor(0.9f, 0.3f, 0.3f, 1f);
+        autoaimTable = new Table();
+        autoaimTable.add(new Label("Autoaim:", skin)).padRight(5).bottom();
+        autoaimTable.add(autoaimButton).width(120).height(100).bottom();
 
-        // Waiting for input label (hidden initially)
+        // Grayscale "Z" Button (next to D-pad)
+
+        TextButton grayscaleKeyButton = createRedButton("Z");
+        grayscaleKeyButton.setColor(0.9f, 0.3f, 0.3f, 1f);
+        grayscaleKeyButton.setDisabled(true);
+
+        Table dPadAndGrayscale = new Table();
+        dPadAndGrayscale.add(dPadTable).padRight(40);
+        dPadAndGrayscale.add(autoaimTable).padRight(40);
+        dPadAndGrayscale.add(new Label("Grayscale:", skin)).padRight(5).bottom();
+        dPadAndGrayscale.add(grayscaleKeyButton).width(120).height(100).bottom();
+
+        // Waiting for input label
         waitingForInput = new Label("Press any key...", skin);
         waitingForInput.setVisible(false);
 
-        // Back button
+        // Back Button
         TextButton backButton = createRedButton("BACK");
         backButton.addListener(new ChangeListener() {
             @Override
@@ -180,14 +218,15 @@ public class SettingsMenuView implements Screen {
                 dispose();
             }
         });
-
-        // Build the main table with proper spacing
+        backButton.setColor(0.9f, 0.3f, 0.3f, 1f);
+        // Layout
         mainTable.add(titleLabel).padBottom(30).row();
         mainTable.add(musicTable).width(350).padBottom(20).row();
         mainTable.add(volumeTable).width(350).padBottom(20).row();
-        mainTable.add(sfxTable).width(350).padBottom(40).row();
+        mainTable.add(sfxTable).width(350).padBottom(10).row();
+        mainTable.add(autoReloadTable).width(350).padBottom(40).row();
         mainTable.add(keysLabel).padBottom(20).row();
-        mainTable.add(dPadTable).padBottom(25).row();
+        mainTable.add(dPadAndGrayscale).padBottom(25).row();
         mainTable.add(waitingForInput).padBottom(30).row();
         mainTable.add(backButton).width(200).height(100).padBottom(20).row();
 
@@ -227,19 +266,21 @@ public class SettingsMenuView implements Screen {
         TextButton leftButton = createKeyBindButton("LEFT", Input.Keys.toString(controller.getKeyBinding("LEFT")));
         TextButton downButton = createKeyBindButton("DOWN", Input.Keys.toString(controller.getKeyBinding("DOWN")));
         TextButton rightButton = createKeyBindButton("RIGHT", Input.Keys.toString(controller.getKeyBinding("RIGHT")));
-
+        autoaimButton.setText(Input.Keys.toString(controller.getKeyBinding("AUTOAIM")));
         // Recreate the D-pad layout
         dPadTable.add().width(120).height(50);
         dPadTable.add(upButton).width(120).height(100).pad(5);
         dPadTable.add().width(120).height(100).row();
-
+        upButton.setColor(0.9f, 0.3f, 0.3f, 1f);
         dPadTable.add(leftButton).width(120).height(100).pad(5);
         dPadTable.add().width(120).height(100);
         dPadTable.add(rightButton).width(120).height(100).pad(5).row();
-
+        leftButton.setColor(0.9f, 0.3f, 0.3f, 1f);
+        rightButton.setColor(0.9f, 0.3f, 0.3f, 1f);
         dPadTable.add().width(120).height(100);
         dPadTable.add(downButton).width(120).height(100).pad(5);
         dPadTable.add().width(120).height(100);
+        downButton.setColor(0.9f, 0.3f, 0.3f, 1f);
     }
 
     @Override

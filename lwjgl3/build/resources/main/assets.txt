@@ -12,6 +12,7 @@ Avatars/T_Hastur_Portrait.png
 Avatars/T_Hina_Portrait.png
 Avatars/T_Lilith_Portrait.png
 Avatars/T_Luna_Portrait.png
+Avatars/T_Raven_Portrait.png
 Avatars/T_Scarlett_Portrait.png
 Avatars/T_Shana_Portrait.png
 Avatars/T_Spark_Portrait.png
@@ -21,6 +22,14 @@ DeathFX/DeathFX_0.png
 DeathFX/DeathFX_1.png
 DeathFX/DeathFX_2.png
 DeathFX/DeathFX_3.png
+ElderMonster/ElderBrain_Em.png
+ElderMonster/ElderMonster.png
+ElderMonster/T_ElectricWall1.png
+ElderMonster/T_ElectricWall2.png
+ElderMonster/T_ElectricWall3.png
+ElderMonster/T_ElectricWall4.png
+ElderMonster/T_ElectricWall5.png
+ElderMonster/T_ElectricWall6.png
 Enemies/Brain/BrainMonster_0.png
 Enemies/Brain/BrainMonster_1.png
 Enemies/Brain/BrainMonster_2.png
@@ -292,3 +301,5 @@ pixthulhu/skin/font-title-export.fnt
 pixthulhu/skin/pixthulhu-ui.atlas
 pixthulhu/skin/pixthulhu-ui.json
 pixthulhu/skin/pixthulhu-ui.png
+shaders/default.vert
+shaders/grayscale.frag

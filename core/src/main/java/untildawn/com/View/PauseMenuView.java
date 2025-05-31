@@ -18,6 +18,7 @@ import com.badlogic.gdx.graphics.Texture;
 import untildawn.com.Main;
 import untildawn.com.Controller.EndScreenController;
 import untildawn.com.Controller.GameController;
+import untildawn.com.Model.SaveGameManager;
 
 import java.util.Map;
 
@@ -63,7 +64,7 @@ public class PauseMenuView {
         createMainMenu();
 
         window.add(contentTable).expand().fill();
-        mainTable.add(window).width(400).height(600).center();
+        mainTable.add(window).width(600).height(900).center();
 
         stage.addActor(mainTable);
     }
@@ -78,19 +79,37 @@ public class PauseMenuView {
         contentTable.clear();
         contentTable.center();
 
-        // Game title with proper styling
+        // Game title
         Label titleLabel = new Label("PAUSE MENU", skin);
         titleLabel.setFontScale(1.5f);
         titleLabel.setColor(menuColor);
         titleLabel.setAlignment(Align.center);
-
         contentTable.add(titleLabel).padBottom(40).center().row();
 
-        // Menu buttons with proper spacing
-        String[] menuOptions = {"RESUME", "CHEAT", "ABILITIES", "EXIT GAME"};
+        // Resume button
+        TextButton resumeButton = createRedButton("RESUME");
+        resumeButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                handleMenuSelection(0);
+            }
+        });
+        contentTable.add(resumeButton).width(300).height(90).padBottom(25).center().row();
 
+        // Grayscale button directly under Resume
+        TextButton grayscaleButton = createRedButton("TOGGLE GRAYSCALE");
+        grayscaleButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                controller.toggleGrayscale();
+            }
+        });
+        contentTable.add(grayscaleButton).width(550).height(100).padBottom(25).center().row();
+
+        // Other menu options
+        String[] menuOptions = {"CHEAT", "ABILITIES", "EXIT GAME"};
         for (int i = 0; i < menuOptions.length; i++) {
-            final int index = i;
+            final int index = i + 1; // Offset by 1 since Resume is index 0
             TextButton button = createRedButton(menuOptions[i]);
             button.addListener(new ClickListener() {
                 @Override
@@ -205,6 +224,7 @@ public class PauseMenuView {
                 boolean saveGame = (boolean) object;
                 if (saveGame) {
                     // User chose "Yes" - exit without showing end screen
+                    SaveGameManager.saveLastGame(controller.getGameController());
                     controller.getGame().setScreen(new PreMenuView(controller.getGame()));
                 } else {
                     // User chose "No" - show lose screen

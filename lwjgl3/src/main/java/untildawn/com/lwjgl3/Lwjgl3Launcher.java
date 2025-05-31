@@ -11,8 +11,26 @@ public class Lwjgl3Launcher {
         createApplication();
     }
 
+
     private static Lwjgl3Application createApplication() {
-        return new Lwjgl3Application(new Main(), getDefaultConfiguration());
+        Main main = new Main();
+        Lwjgl3ApplicationConfiguration config = getDefaultConfiguration();
+        config.setWindowListener(new com.badlogic.gdx.backends.lwjgl3.Lwjgl3WindowListener() {
+            @Override
+            public void filesDropped(String[] files) {
+                if (files.length > 0) {
+                    main.setDroppedAvatarFile(files[0]);
+                }
+            }
+            @Override public void created(com.badlogic.gdx.backends.lwjgl3.Lwjgl3Window window) {}
+            @Override public void iconified(boolean isIconified) {}
+            @Override public void maximized(boolean isMaximized) {}
+            @Override public void focusLost() {}
+            @Override public void focusGained() {}
+            @Override public boolean closeRequested() { return false; }
+            @Override public void refreshRequested() {}
+        });
+        return new Lwjgl3Application(main, config);
     }
 
     private static Lwjgl3ApplicationConfiguration getDefaultConfiguration() {

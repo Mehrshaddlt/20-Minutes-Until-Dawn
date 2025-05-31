@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
@@ -17,6 +18,7 @@ import com.badlogic.gdx.utils.ScreenUtils;
 import untildawn.com.Controller.EndScreenController;
 import untildawn.com.Controller.GameController;
 import untildawn.com.Controller.PauseMenuController;
+import untildawn.com.Controller.SettingsMenuController;
 import untildawn.com.Main;
 import untildawn.com.Model.*;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
@@ -65,7 +67,9 @@ public class GameView implements Screen {
     // Map dimensions
     private final int MAP_WIDTH = 60;
     private final int MAP_HEIGHT = 40;
-
+    // Gray scale
+    private ShaderProgram grayscaleShader;
+    private boolean isGrayscale = false;
     public GameView(Main game, User user, int durationMinutes) {
         this.game = game;
         this.weaponsManager = new WeaponsManager();
@@ -76,6 +80,7 @@ public class GameView implements Screen {
         uiCamera = new OrthographicCamera();
         uiCamera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         uiCamera.update();
+        SettingsMenuController settingsMenuController = new SettingsMenuController(game, user);
         font = new BitmapFont();
         font.setColor(Color.WHITE);
         loadTTFFont();
@@ -90,6 +95,14 @@ public class GameView implements Screen {
         killCountFont.setColor(Color.WHITE);
         killCountFont.getData().setScale(1.5f);
         // Load textures
+        ShaderProgram.pedantic = false;
+        grayscaleShader = new ShaderProgram(
+            Gdx.files.internal("shaders/default.vert"), // Use LibGDX's default vertex shader
+            Gdx.files.internal("shaders/grayscale.frag")
+        );
+        if (!grayscaleShader.isCompiled()) {
+            System.err.println("Grayscale shader compile error: " + grayscaleShader.getLog());
+        }
         grassTexture = new Texture(Gdx.files.internal("T_TileGrass.png"));
         cursorTexture = new Texture(Gdx.files.internal("T_Cursor.png"));
         try {
@@ -110,13 +123,13 @@ public class GameView implements Screen {
         enemiesManager.spawnInitialTrees(20);
 
         // THEN: Create controller with the initialized enemiesManager
-        this.controller = new GameController(user, weaponsManager, enemiesManager, (int)gameTimeRemaining);
+        this.controller = new GameController(user, weaponsManager, enemiesManager, (int)gameTimeRemaining, settingsMenuController);
 
         // Rest of initialization
         Gdx.input.setCursorCatched(true);
         cursorPosition = new Vector3();
         worldCursorPosition = new Vector2();
-        pauseMenuController = new PauseMenuController(controller, game);
+        pauseMenuController = new PauseMenuController(controller, game, this);
         pauseMenuView = new PauseMenuView(pauseMenuController);
         selectedWeapon = user.getSelectedWeapon();
         abilities = new Abilities(controller.getPlayer());
@@ -216,11 +229,15 @@ public class GameView implements Screen {
         // Only process menu navigation if NOT paused
         if (!pauseMenuController.isPaused()) {
             // Handle menu navigation
+            if (Gdx.input.isKeyJustPressed(Input.Keys.Z)) {
+                toggleGrayscale();
+            }
             if (Gdx.input.isKeyJustPressed(Input.Keys.P)) {
                 game.setScreen(new PreMenuView(game));
                 dispose();
                 return;
             }
+
             if (Gdx.input.isKeyJustPressed(Input.Keys.K)) {
                 // Skip 1 minute (60 seconds)
                 gameTimeRemaining = Math.max(0, gameTimeRemaining - 60);
@@ -264,6 +281,11 @@ public class GameView implements Screen {
             batch.setProjectionMatrix(uiCamera.combined);
             batch.draw(cursorTexture, Gdx.input.getX() - 15, Gdx.graphics.getHeight() - Gdx.input.getY() - 15, 30, 30);
             batch.setProjectionMatrix(gameProjection);
+            if (isGrayscale && grayscaleShader != null && grayscaleShader.isCompiled()) {
+                batch.setShader(grayscaleShader);
+            } else {
+                batch.setShader(null);
+            }
             batch.end();
             if (isPlayerHit) {
                 drawDamageFlash();
@@ -303,16 +325,25 @@ public class GameView implements Screen {
             }
         }
         else if (!pauseMenuController.isPaused()) {
-            // Normal gameplay - include all game logic (only if not paused)
-            float angle = calculateAngleBetween(player.getPosition(), worldCursorPosition);
-            controller.updateTargetInfo(worldCursorPosition, angle);
-            boolean leftButtonPressed = Gdx.input.isButtonPressed(Input.Buttons.LEFT);
+            Vector2 aimTarget = controller.getAutoAimTarget();
+            Vector2 targetToUse = aimTarget != null ? aimTarget : worldCursorPosition;
+
+            // Update mouse cursor position to match the target
+            if (aimTarget != null) {
+                // Convert world position to screen coordinates
+                Vector3 screenPos = camera.project(new Vector3(aimTarget.x, aimTarget.y, 0));
+                Gdx.input.setCursorPosition((int)screenPos.x, Gdx.graphics.getHeight() - (int)screenPos.y);
+            }
+
+            // Then use targetToUse for weapon angle and rendering
+            float angle = calculateAngleBetween(player.getPosition(), targetToUse);
+            controller.updateTargetInfo(targetToUse, angle);
 
             // Handle weapon firing
             if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
                 controller.handleShot(
                     player.getPosition(),
-                    worldCursorPosition,
+                    targetToUse,
                     selectedWeapon,
                     angle
                 );
@@ -322,10 +353,10 @@ public class GameView implements Screen {
                 }
             }
 
-            if (leftButtonWasPressed && !leftButtonPressed && selectedWeapon.equals("SMG")) {
+            if (leftButtonWasPressed && !Gdx.input.isButtonPressed(Input.Buttons.LEFT) && selectedWeapon.equals("SMG")) {
                 controller.stopContinuousFire();
             }
-            leftButtonWasPressed = leftButtonPressed;
+            leftButtonWasPressed = Gdx.input.isButtonPressed(Input.Buttons.LEFT);
 
             // Update enemies and weapons
             enemiesManager.update(delta, controller.getPlayer(), gameTimeRemaining);
@@ -353,6 +384,11 @@ public class GameView implements Screen {
             drawCursor();
             drawUI(delta);
             renderLevelBar(batch);
+            if (isGrayscale && grayscaleShader != null && grayscaleShader.isCompiled()) {
+                batch.setShader(grayscaleShader);
+            } else {
+                batch.setShader(null);
+            }
             batch.end();
             if (isPlayerHit) {
                 drawDamageFlash();
@@ -375,16 +411,25 @@ public class GameView implements Screen {
             batch.begin();
             drawUI(delta);
             renderLevelBar(batch);
+            if (isGrayscale && grayscaleShader != null && grayscaleShader.isCompiled()) {
+                batch.setShader(grayscaleShader);
+            } else {
+                batch.setShader(null);
+            }
             batch.end();
             if (isPlayerHit) {
                 drawDamageFlash();
             }
+            batch.setShader(null);
         }
 
         // Always render pause menu on top if paused
         if (pauseMenuController.isPaused()) {
             pauseMenuView.render();
         }
+    }
+    public void toggleGrayscale() {
+        isGrayscale = !isGrayscale;
     }
     private void initFogOfWar() {
         fogBatch = new SpriteBatch();

@@ -16,16 +16,16 @@ public class GameController {
     private EnemiesManager enemiesManager;
     private PauseMenuController pauseMenuController;
     private final int initialGameTimeInSeconds;
-
-    // Fields for weapon types and continuous fire
-    private String currentWeapon;
+    private final SettingsMenuController settingsMenuController;
+    public String currentWeapon;
     private boolean continuousFire = false;
-    private final float smgFireRate = 0.08f; // Time between SMG shots
+    private final float smgFireRate = 0.08f;
     private float smgFireTimer = 0f;
     private Vector2 targetPosition = new Vector2();
     private float weaponAngle;
-
-    public GameController(User user, WeaponsManager weaponManager, EnemiesManager enemiesManager, int gameTimeInSeconds) {
+    private Vector2 autoAimTarget = null;
+    private boolean autoAimEnabled = false;
+    public GameController(User user, WeaponsManager weaponManager, EnemiesManager enemiesManager, int gameTimeInSeconds,  SettingsMenuController settingsMenuController) {
         String selectedHero = user.getSelectedHero() != null ? user.getSelectedHero() : "Diamond";
         player = new Player(selectedHero, 0, 0, user);
         movementManager = new MovementManager();
@@ -33,14 +33,14 @@ public class GameController {
         this.weaponsManager = weaponManager;
         this.enemiesManager = enemiesManager;
         this.initialGameTimeInSeconds = gameTimeInSeconds;
+        this.settingsMenuController = settingsMenuController;
     }
     public int getTotalGameTimeInSeconds() {
         return initialGameTimeInSeconds;
     }
     public void update(float delta) {
-        // Check input for movement}
         if (currentWeapon == null) {
-            currentWeapon = "Revolver"; // Set default weapon
+            currentWeapon = "Revolver";
         }
 
         Preferences prefs = Gdx.app.getPreferences("untildawn_settings");
@@ -48,23 +48,23 @@ public class GameController {
         int downKey = prefs.getInteger("key_DOWN", Input.Keys.S);
         int leftKey = prefs.getInteger("key_LEFT", Input.Keys.A);
         int rightKey = prefs.getInteger("key_RIGHT", Input.Keys.D);
-
-        // Use the custom key bindings
+        int autoAimKey = prefs.getInteger("key_AUTOAIM", Input.Keys.SPACE);
         boolean moveUp = Gdx.input.isKeyPressed(upKey);
         boolean moveDown = Gdx.input.isKeyPressed(downKey);
         boolean moveLeft = Gdx.input.isKeyPressed(leftKey);
         boolean moveRight = Gdx.input.isKeyPressed(rightKey);
         boolean isRunning = Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT) || Gdx.input.isKeyPressed(Input.Keys.SHIFT_RIGHT);
-
         if (Gdx.input.isKeyJustPressed(Input.Keys.R)) {
             weaponsManager.startReload(currentWeapon);
         }
-        // Calculate move distance
+        if (Gdx.input.isKeyPressed(autoAimKey)) {
+            getAutoAimTarget();
+        } else {
+            autoAimTarget = null;
+        }
         float moveAmount = isRunning ? player.runSpeed * delta : player.walkSpeed * delta;
         Vector2 position = player.getPosition();
         Vector2 newPosition = new Vector2(position);
-
-        // Check each direction separately
         if (moveUp) {
             newPosition.set(position.x, position.y + moveAmount);
             if (!enemiesManager.isPositionBlocked(newPosition.x, newPosition.y)) {
@@ -89,14 +89,9 @@ public class GameController {
                 position.x += moveAmount;
             }
         }
-
-        // Update player state but don't move (we already did that)
         player.updateState(delta, moveUp, moveDown, moveLeft, moveRight, isRunning);
-
-        // Update weapon systems
         weaponsManager.update(delta);
         weaponsManager.checkPlayerCollision(player);
-        // Handle weapon cooldowns
         if (!canShoot) {
             shootCooldown -= delta;
             if (shootCooldown <= 0) {
@@ -104,12 +99,11 @@ public class GameController {
             }
         }
         if (canShoot && weaponsManager.getCurrentAmmo(currentWeapon) <= 0) {
-            weaponsManager.startReload(currentWeapon);
+            if (settingsMenuController.isAutoReloadEnabled()) {
+                weaponsManager.startReload(currentWeapon);
+            }
         }
-
-        // Check if we can shoot (now factors in ammo)
         canShoot = !weaponsManager.isReloading() && weaponsManager.canFire(currentWeapon);
-        // Handle SMG continuous fire
         if (continuousFire && "SMG".equals(currentWeapon)) {
             smgFireTimer -= delta;
             if (smgFireTimer <= 0 && canShoot) {
@@ -118,10 +112,37 @@ public class GameController {
             }
         }
     }
-
+    public Vector2 getAutoAimTarget() {
+        Preferences prefs = Gdx.app.getPreferences("untildawn_settings");
+        int autoAimKey = prefs.getInteger("key_AUTOAIM", Input.Keys.SPACE);
+        if (Gdx.input.isKeyPressed(autoAimKey)) {
+            System.out.println("Space pressed - looking for targets");
+            Vector2 playerPos = player.getPosition();
+            Enemy nearest = null;
+            float minDist = Float.MAX_VALUE;
+            for (Enemy enemy : enemiesManager.getEnemies()) {
+                // Skip trees and inactive enemies
+                if (!enemy.isActive() || enemy instanceof TreeMonster) continue;
+                float dist = playerPos.dst(enemy.getPosition());
+                if (dist < minDist) {
+                    minDist = dist;
+                    nearest = enemy;
+                }
+            }
+            if (nearest != null) {
+                System.out.println("Found target at: " + nearest.getPosition());
+                autoAimTarget = nearest.getPosition().cpy();
+                return autoAimTarget;
+            }
+            else {
+                System.out.println("No valid targets found");
+            }
+        }
+        autoAimTarget = null;
+        return null;
+    }
     public void handleShot(Vector2 playerPosition, Vector2 targetPosition, String weaponType, float weaponAngle) {
         this.currentWeapon = weaponType;
-
         if (canShoot && weaponsManager.canFire(weaponType)) {
             switch (weaponType) {
                 case "Shotgun":
@@ -130,15 +151,13 @@ public class GameController {
                     canShoot = false;
                     shootCooldown = 0.8f;
                     break;
-
                 case "SMG":
                     weaponsManager.createBullet(playerPosition, targetPosition, weaponType, weaponAngle, player);
                     weaponsManager.fireWeapon(weaponType);
                     canShoot = false;
                     shootCooldown = 0.05f;
                     break;
-
-                default: // Revolver
+                default:
                     weaponsManager.createBullet(playerPosition, targetPosition, weaponType, weaponAngle, player);
                     weaponsManager.fireWeapon(weaponType);
                     canShoot = false;
@@ -153,24 +172,19 @@ public class GameController {
             continuousFire = true;
         }
     }
-
     public void stopContinuousFire() {
         continuousFire = false;
     }
-
     public void updateTargetInfo(Vector2 targetPos, float angle) {
         this.targetPosition.set(targetPos);
         this.weaponAngle = angle;
     }
-
     public Player getPlayer() {
         return player;
     }
-
     public MovementManager getMovementManager() {
         return movementManager;
     }
-
     public IdleManager getIdleManager() {
         return idleManager;
     }

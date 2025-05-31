@@ -10,15 +10,10 @@ public class AssetManager {
     private static AssetManager instance;
     private Skin skin;
     private SpriteBatch batch;
-
-    // Target resolution
     private final float TARGET_WIDTH = 1920f;
     private final float TARGET_HEIGHT = 1080f;
-
-    // Parallax background properties
     private Array<BackgroundLayer> backgroundLayers;
     private Array<BackgroundProp> backgroundProps;
-
     private AssetManager() {
         loadAssets();
         batch = new SpriteBatch();
@@ -26,7 +21,6 @@ public class AssetManager {
         backgroundProps = new Array<>();
     }
 
-    // Class to represent a background layer
     private class BackgroundLayer {
         Texture texture;
         float scrollSpeed;
@@ -39,13 +33,11 @@ public class AssetManager {
         }
     }
 
-    // Class to represent a background prop
     private class BackgroundProp {
         Texture texture;
         float x;
         float y;
         float scale;
-
         public BackgroundProp(Texture texture, float x, float y, float scale) {
             this.texture = texture;
             this.x = x;
@@ -72,20 +64,16 @@ public class AssetManager {
 
     public void loadParallaxBackground(String[] layerFiles, float baseSpeed) {
         try {
-            // Clear any existing layers
             disposeBackgroundLayers();
             backgroundLayers.clear();
-
-            // Load each layer with decreasing scroll speed
             for (int i = 0; i < layerFiles.length; i++) {
                 Texture tex = new Texture(Gdx.files.internal(layerFiles[i]));
-                tex.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest); // For pixelated look
-
-                // First layer (furthest back) is slowest, each layer gets faster
+                tex.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
                 float layerSpeed = baseSpeed * (i + 1) / 10f;
                 backgroundLayers.add(new BackgroundLayer(tex, layerSpeed));
             }
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             System.err.println("Error loading background layers: " + e.getMessage());
             e.printStackTrace();
         }
@@ -94,28 +82,18 @@ public class AssetManager {
     public void renderBackground(float delta) {
         if (backgroundLayers.size > 0) {
             batch.begin();
-
             float screenWidth = Gdx.graphics.getWidth();
             float screenHeight = Gdx.graphics.getHeight();
-
-            // Render each layer
             for (BackgroundLayer layer : backgroundLayers) {
-                // Update the layer offset based on scroll speed
                 layer.offsetX = (layer.offsetX + layer.scrollSpeed * delta) % screenWidth;
-
-                // Draw the layer stretched to fit screen height
                 float imageAspectRatio = (float)layer.texture.getWidth() / layer.texture.getHeight();
                 float drawWidth = screenHeight * imageAspectRatio;
-
-                // Draw copies of the image side by side for scrolling
                 int copies = (int)Math.ceil(screenWidth / drawWidth) + 1;
-
                 for (int i = 0; i < copies; i++) {
                     float xPos = -layer.offsetX + i * drawWidth;
                     batch.draw(layer.texture, xPos, 0, drawWidth, screenHeight);
                 }
             }
-
             batch.end();
         }
     }

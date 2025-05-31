@@ -34,7 +34,6 @@ public class RegisterMenuController {
         String avatarPath = getRandomAvatar();
         newUser.setAvatarPath(avatarPath);
         boolean success = User.saveUser(newUser);
-
         if (!success) {
             lastError = "Failed to save user";
             return false;
@@ -43,43 +42,34 @@ public class RegisterMenuController {
         return true;
     }
     public boolean validateRegistrationData(String username, String password) {
-        // Username validation
         if (username.isEmpty()) {
             lastError = "Username cannot be empty";
             return false;
         }
-
         if (username.length() < 3) {
             lastError = "Username must be at least 3 characters long";
             return false;
         }
-
-        // Password validation
         if (password.isEmpty()) {
             lastError = "Password cannot be empty";
             return false;
         }
-
         if (password.length() < 8) {
             lastError = "Password must be at least 8 characters long";
             return false;
         }
-
         if (!password.matches(".*[A-Z].*")) {
             lastError = "Password must contain at least one capital letter";
             return false;
         }
-
         if (!password.matches(".*[0-9].*")) {
             lastError = "Password must contain at least one number";
             return false;
         }
-
         if (!password.matches(".*[_()*&%$#@].*")) {
             lastError = "Password must contain at least one special character: _()*&%$#@";
             return false;
         }
-
         return true;
     }
     public boolean isUsernameAvailable(String username) {
@@ -102,16 +92,11 @@ public class RegisterMenuController {
         return lastError;
     }
     private String getRandomAvatar() {
-        // Get all files in the Avatars directory
         FileHandle dirHandle = Gdx.files.internal("Avatars");
         FileHandle[] files = dirHandle.list(".png");
-
         if (files.length == 0) {
-            // Return default if no avatars found
             return "Avatars/T_Abby_Portrait.png";
         }
-
-        // Pick a random avatar
         int randomIndex = (int) (Math.random() * files.length);
         return "Avatars/" + files[randomIndex].name();
     }

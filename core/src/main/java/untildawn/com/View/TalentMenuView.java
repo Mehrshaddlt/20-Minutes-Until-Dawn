@@ -65,7 +65,7 @@ public class TalentMenuView implements Screen {
         addHeroStats(heroesTable, "Scarlet", 3, 5);
         addHeroStats(heroesTable, "Lilith", 5, 3);
         addHeroStats(heroesTable, "Dasher", 3, 10);
-
+        heroesTable.setColor(1.0f, 0.45f, 0.45f, 1f);
         // Controls Information
         Table controlsTable = new Table();
         controlsTable.background(skin.getDrawable("window"));
@@ -87,7 +87,7 @@ public class TalentMenuView implements Screen {
         addControlInfo(controlsTable, "Move Left", Input.Keys.toString(leftKey));
         addControlInfo(controlsTable, "Move Right", Input.Keys.toString(rightKey));
         addControlInfo(controlsTable, "Shoot", "Left Click");
-
+        controlsTable.setColor(1.0f, 0.45f, 0.45f, 1f);
         // Cheat Codes
         Table cheatsTable = new Table();
         cheatsTable.background(skin.getDrawable("window"));
@@ -101,7 +101,7 @@ public class TalentMenuView implements Screen {
         addCheatInfo(cheatsTable, "L", "Level up");
         addCheatInfo(cheatsTable, "K", "Pass 1 minute of time");
         addCheatInfo(cheatsTable, "H", "Heal fully");
-
+        cheatsTable.setColor(1.0f, 0.45f, 0.45f, 1f);
         // Abilities
         Table abilitiesTable = new Table();
         abilitiesTable.background(skin.getDrawable("window"));
@@ -116,7 +116,7 @@ public class TalentMenuView implements Screen {
         addAbilityInfo(abilitiesTable, "Procrease", "Adds another projectile");
         addAbilityInfo(abilitiesTable, "Amocrease", "Adds 5 maximum ammo");
         addAbilityInfo(abilitiesTable, "Speedy", "Doubles speed for 10 seconds");
-
+        abilitiesTable.setColor(1.0f, 0.45f, 0.45f, 1f);
         // Back button
         TextButton backButton = createRedButton("BACK");
         backButton.addListener(new ChangeListener() {

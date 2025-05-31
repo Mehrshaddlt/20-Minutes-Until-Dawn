@@ -17,28 +17,23 @@ public class MusicManager {
         musicTracks = new HashMap<>();
         loadMusic();
     }
-
     public static MusicManager getInstance() {
         if (instance == null) {
             instance = new MusicManager();
         }
         return instance;
     }
-
     private void loadMusic() {
         try {
-            // Load all music tracks
             musicTracks.put("Menu 1", Gdx.audio.newMusic(Gdx.files.internal("Music/1.mp3")));
             musicTracks.put("Menu 2", Gdx.audio.newMusic(Gdx.files.internal("Music/2.mp3")));
             musicTracks.put("Gameplay", Gdx.audio.newMusic(Gdx.files.internal("Music/Gameplay.mp3")));
-
-            // Set looping for all tracks
             for (Music music : musicTracks.values()) {
                 music.setLooping(true);
             }
-
             Gdx.app.debug("MusicManager", "Loaded music files successfully");
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             Gdx.app.error("MusicManager", "Error loading music: " + e.getMessage());
         }
     }
@@ -47,12 +42,9 @@ public class MusicManager {
         if (!enabled || !musicTracks.containsKey(trackName)) {
             return;
         }
-
-        // Stop current music if something else is playing
         if (currentTrack != null && musicTracks.containsKey(currentTrack)) {
             musicTracks.get(currentTrack).stop();
         }
-
         Music music = musicTracks.get(trackName);
         music.setVolume(volume);
         music.play();
@@ -69,8 +61,6 @@ public class MusicManager {
 
     public void setVolume(float volume) {
         this.volume = Math.max(0, Math.min(1, volume));
-
-        // Apply to currently playing track
         if (currentTrack != null && musicTracks.containsKey(currentTrack)) {
             musicTracks.get(currentTrack).setVolume(volume);
         }
@@ -85,7 +75,7 @@ public class MusicManager {
         if (!enabled) {
             stopMusic();
         } else if (currentTrack != null) {
-            playMusic(currentTrack); // Resume playing
+            playMusic(currentTrack);
         }
     }
 

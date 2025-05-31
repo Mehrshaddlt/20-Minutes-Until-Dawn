@@ -10,35 +10,37 @@ import untildawn.com.View.SplashScreenView;
 public class Main extends Game {
     private SpriteBatch batch;
     private boolean wasActive = true;
+    private boolean isFullscreen = true;
+    private String droppedAvatarFile = null;
 
     @Override
     public void create() {
         batch = new SpriteBatch();
-        // Force fullscreen mode
         setFullscreen();
 
-        // Only use actual background images, specifically excluding walls.png
         AssetManager.getInstance().loadParallaxBackground(new String[]{
             "background/layers/background.png",
             "background/layers/middleground.png",
             "background/layers/middleground-no-fungus.png"
         }, 5f);
-        // Set the first screen
         this.setScreen(new SplashScreenView(this));
     }
 
     private void setFullscreen() {
-        // Force fullscreen mode
         Graphics.DisplayMode currentMode = Gdx.graphics.getDisplayMode();
         Gdx.graphics.setFullscreenMode(currentMode);
-
-        // Set continuous rendering to maintain smooth gameplay
         Gdx.graphics.setContinuousRendering(true);
-
-        // Set window to be undecorated (no title bar)
         System.setProperty("org.lwjgl.opengl.Window.undecorated", "true");
     }
+    public void setDroppedAvatarFile(String filePath) {
+        this.droppedAvatarFile = filePath;
+    }
 
+    public String consumeDroppedAvatarFile() {
+        String file = droppedAvatarFile;
+        droppedAvatarFile = null;
+        return file;
+    }
     @Override
     public void render() {
         // Handle Alt+Tab attempt to regain focus
@@ -46,21 +48,31 @@ public class Main extends Game {
             Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.TAB)) {
             setFullscreen();
         }
-
+        if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.F11)) {
+            isFullscreen = !isFullscreen;
+            if (isFullscreen) {
+                Gdx.graphics.setFullscreenMode(Gdx.graphics.getDisplayMode());
+            } else {
+                Gdx.graphics.setWindowedMode(1920, 1080); // or your preferred window size
+            }
+        }
         super.render();
     }
 
     @Override
     public void resize(int width, int height) {
         super.resize(width, height);
-        // Re-apply fullscreen if window is resized
-        setFullscreen();
+        if (isFullscreen) {
+            setFullscreen();
+        }
     }
 
     @Override
     public void resume() {
         // Called when the application regains focus
-        setFullscreen();
+        if (isFullscreen) {
+            setFullscreen();
+        }
         super.resume();
     }
 

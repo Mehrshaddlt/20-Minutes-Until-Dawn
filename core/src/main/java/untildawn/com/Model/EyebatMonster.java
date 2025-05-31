@@ -6,10 +6,9 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 
 public class EyebatMonster extends Enemy {
-    private static final float ATTACK_COOLDOWN = 3.0f;  // Shoot every 3 seconds
+    private static final float ATTACK_COOLDOWN = 3.0f;
     private static final float HEALTH = 50f;
     private static final float MOVEMENT_SPEED = 150f;
-
     private float attackTimer = 0f;
     private Animation<TextureRegion> flyingAnimation;
     private float animationTime = 0f;
@@ -19,11 +18,9 @@ public class EyebatMonster extends Enemy {
     private WeaponsManager weaponsManager;
 
     public EyebatMonster(float x, float y, TextureRegion[] frames, WeaponsManager weaponsManager) {
-        super(x, y, 50); // Assuming Enemy constructor takes x, y, size
+        super(x, y, 50);
         this.health = HEALTH;
         this.weaponsManager = weaponsManager;
-
-        // Create flying animation
         flyingAnimation = new Animation<>(0.1f, frames);
         flyingAnimation.setPlayMode(Animation.PlayMode.LOOP);
 
@@ -34,45 +31,35 @@ public class EyebatMonster extends Enemy {
     @Override
     public void update(float delta, Player player) {
         if (!isActive()) return;
-
         updateHitFlash(delta);
-
-        // Update animation time
-        animationTime += delta;
-
-        // Movement AI - maintain some distance from player
-        Vector2 directionToPlayer = new Vector2(
-            player.getPosition().x - position.x,
-            player.getPosition().y - position.y
-        );
-
-        float distanceToPlayer = directionToPlayer.len();
-
-        // Normalize direction
-        if (distanceToPlayer > 0) {
-            directionToPlayer.nor();
-        }
-
-        // Move toward player if too far, away if too close
-        float idealDistance = 250f;
-        float distanceFactor = (distanceToPlayer - idealDistance) / 200f;
-        distanceFactor = Math.max(-1f, Math.min(1f, distanceFactor));
-
-        position.x += directionToPlayer.x * MOVEMENT_SPEED * distanceFactor * delta;
-        position.y += directionToPlayer.y * MOVEMENT_SPEED * distanceFactor * delta;
-
-        // Attack logic - shoot projectile at player every 3 seconds
-        attackTimer += delta;
-        if (attackTimer >= ATTACK_COOLDOWN) {
-            attackTimer = 0;
-            shootAtPlayer(player);
+        position.add(velocity.x * delta, velocity.y * delta);
+        velocity.scl(0.95f);
+        if (velocity.len2() < 1000f) {
+            animationTime += delta;
+            Vector2 directionToPlayer = new Vector2(
+                player.getPosition().x - position.x,
+                player.getPosition().y - position.y
+            );
+            float distanceToPlayer = directionToPlayer.len();
+            if (distanceToPlayer > 0) {
+                directionToPlayer.nor();
+            }
+            float idealDistance = 250f;
+            float distanceFactor = (distanceToPlayer - idealDistance) / 200f;
+            distanceFactor = Math.max(-1f, Math.min(1f, distanceFactor));
+            position.x += directionToPlayer.x * MOVEMENT_SPEED * distanceFactor * delta;
+            position.y += directionToPlayer.y * MOVEMENT_SPEED * distanceFactor * delta;
+            attackTimer += delta;
+            if (attackTimer >= ATTACK_COOLDOWN) {
+                attackTimer = 0;
+                shootAtPlayer(player);
+            }
         }
     }
 
     private void shootAtPlayer(Player player) {
         if (weaponsManager == null) return;
         SoundManager.getInstance().play("projectile", 0.5f);
-        // Create a bullet from this enemy to the player
         weaponsManager.createEnemyBullet(
             new Vector2(position.x, position.y),
             new Vector2(player.getPosition().x, player.getPosition().y)
@@ -83,7 +70,7 @@ public class EyebatMonster extends Enemy {
     public void render(SpriteBatch batch) {
         if (!isActive()) return;
         if (isHitFlashing) {
-            batch.setColor(1, 0, 0, 1);  // Red color
+            batch.setColor(1, 0, 0, 1);
         }
         TextureRegion currentFrame = flyingAnimation.getKeyFrame(animationTime);
         batch.draw(currentFrame,
@@ -91,7 +78,7 @@ public class EyebatMonster extends Enemy {
             width, height
         );
         if (isHitFlashing) {
-            batch.setColor(1, 1, 1, 1);  // Reset to white
+            batch.setColor(1, 1, 1, 1);
         }
     }
 }

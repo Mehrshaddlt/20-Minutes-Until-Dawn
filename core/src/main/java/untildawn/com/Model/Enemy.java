@@ -11,6 +11,8 @@ public abstract class Enemy {
     protected float hitFlashTime = 0;
     protected final float HIT_FLASH_DURATION = 0.1f;
     private boolean hasAwardedXP = false;
+    protected Vector2 velocity = new Vector2();
+    protected float knockbackResistance = 1.0f;
 
     public Enemy(float x, float y, float health) {
         this.position = new Vector2(x, y);
@@ -43,25 +45,26 @@ public abstract class Enemy {
         return position;
     }
 
-    public void takeDamage(float damage) {
+    public boolean takeDamage(float damage) {
         health -= damage;
+        startHitFlash();
+
         if (health <= 0) {
             active = false;
+            return true;
         }
+        return false;
     }
     public boolean hasAwardedXP() {
         return hasAwardedXP;
     }
-
     public void setHasAwardedXP(boolean hasAwardedXP) {
         this.hasAwardedXP = hasAwardedXP;
     }
     public float distanceToPlayer(Player player) {
         return position.dst(player.getPosition());
     }
-
-    // Add this method for collision detection
     public float getCollisionRadius() {
-        return 20f; // Default value, override in subclass if needed
+        return 20f;
     }
 }
