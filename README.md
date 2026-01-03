@@ -7,6 +7,7 @@ A desktop Java game inspired by “20 Minutes Till Dawn,” built with [LibGDX](
 ---
 
 ## Table of contents
+- [Overall Features](#overall-features)
 - [Features](#features)
 - [Screenshots](#screenshots)
 - [Tech stack](#tech-stack)
@@ -17,10 +18,19 @@ A desktop Java game inspired by “20 Minutes Till Dawn,” built with [LibGDX](
 - [Configuration](#configuration)
 - [Assets and credits](#assets-and-credits)
 - [Contributing](#contributing)
-- [Roadmap](#roadmap)
 - [Acknowledgements](#acknowledgements)
 - [License](#license)
+---
 
+## Overall Features
+- Fully implemented Heroes system with different health and speed.
+- Functional Guns which have different DPS and ammunition.
+- Save game system which can be polished alittle further.
+- Boss fight system that has the ability to dash and create a boss arena to fight in.
+- Different enemies, 1 projectile enemy and 1 melee enemy that have different formula for spawning in.
+- Leveling system that gradually gets more advanced and harder to progress with 6 abilities to upgrade.
+- The game also supports SFX, meaning the game has music, gunshot and death SFX.
+- Every enemy has different VFX, with death VFX and also shooting VFX as well.
 ---
 
 ## Features
@@ -194,15 +204,6 @@ Issues and PRs are welcome. Suggested contributions:
 
 Please follow typical Java/LibGDX conventions and keep modules (`core`, `lwjgl3`) cleanly separated.
 
----
-
-## Roadmap
-- Implement core gameplay loop, enemy spawning, progression.
-- Hero and weapon systems with abilities and upgrades.
-- Save data and meta-progression.
-- Settings menu (graphics, audio, controls).
-- More polish on shaders, post-processing, and effects.
-- Optional native image build via GraalVM.
 
 ---
 
