@@ -6,10 +6,10 @@
 "isGuest": false,
 "avatarPath": "Avatars/T_Abby_Portrait.png",
 "selectedHero": "Shana",
-"selectedWeapon": "Revolver",
-"totalGamesPlayed": 14,
+"selectedWeapon": "SMG",
+"totalGamesPlayed": 17,
 "gamesWon": 3,
-"totalKills": 220,
-"highScore": 284,
-"totalScore": 1348
+"totalKills": 520,
+"highScore": 236944,
+"totalScore": 244172
 }

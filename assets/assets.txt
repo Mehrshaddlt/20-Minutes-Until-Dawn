@@ -301,5 +301,11 @@ pixthulhu/skin/font-title-export.fnt
 pixthulhu/skin/pixthulhu-ui.atlas
 pixthulhu/skin/pixthulhu-ui.json
 pixthulhu/skin/pixthulhu-ui.png
+screenshots/01-main-menu.png
+screenshots/02-gameplay-early.png
+screenshots/03-abilities-ui.png
+screenshots/04-wave.png
+screenshots/Logo1.png
+screenshots/Logo2.png
 shaders/default.vert
 shaders/grayscale.frag
