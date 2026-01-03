@@ -166,7 +166,6 @@ Asset list generation:
 Desktop launcher defaults:
 - Title: “20 minutes till dawn”
 - Windowed fallback: 1920×1080
-- Icons: `libgdx128.png`, `libgdx64.png`, `libgdx32.png`, `libgdx16.png`
 
 Java:
 - Desktop `lwjgl3` module: Java 17, release 17.
